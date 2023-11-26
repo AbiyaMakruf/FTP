@@ -22,5 +22,5 @@ def send_file(file_path):
         print("File sent successfully")
 
 if __name__ == "__main__":
-    file_path = "path/to/your/file.txt"  # Replace with the path to your file
+    file_path = "./Database/file.txt"  # Replace with the path to your file
     send_file(file_path)
