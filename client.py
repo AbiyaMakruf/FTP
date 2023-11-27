@@ -1,5 +1,14 @@
 import socket
+import os
 import time
+import sys
+
+def progress_bar(iteration, total, prefix='', suffix='', length=50, fill='█'):
+    percent = ("{0:.1f}").format(100 * (iteration / float(total)))
+    filled_length = int(length * iteration // total)
+    bar = fill * filled_length + '-' * (length - filled_length)
+    sys.stdout.write('\r%s |%s| %s%% %s' % (prefix, bar, percent, suffix))
+    sys.stdout.flush()
 
 def unggah(file_path):
     host = "192.168.18.109"
@@ -18,14 +27,18 @@ def unggah(file_path):
         file_name = file_path.split("/")[-1]
         client_socket.send(file_name.encode())
 
-        # Send file content
+        # Send file content with progress bar
+        file_size = os.path.getsize(file_path)
         with open(file_path, 'rb') as file:
             data = file.read(1024)
+            sent_bytes = 0
             while data:
                 client_socket.send(data)
+                sent_bytes += len(data)
+                progress_bar(sent_bytes, file_size, prefix='Uploading:', suffix='Complete', length=50)
                 data = file.read(1024)
 
-        print("File sent successfully")
+        print("\nFile sent successfully")
 
 def download():
     host = "192.168.18.109"
@@ -54,15 +67,22 @@ def download():
             response = client_socket.recv(1024).decode()
 
             if response == "EXISTS":
-                # Open a new file for writing
-                with open(file_name, 'wb') as file:
-                    # Receive file content
-                    data = client_socket.recv(1024)
-                    while data:
-                        file.write(data)
-                        data = client_socket.recv(1024)
+                # Build the path to the "Download" folder
+                download_folder = "./Download"
 
-                print("File received successfully")
+                # Receive file size
+                file_size = int(client_socket.recv(1024).decode())
+                
+                # Open a new file for writing in the "Download" folder
+                with open(os.path.join(download_folder, file_name), 'wb') as file:
+                    received_bytes = 0
+                    while received_bytes < file_size:
+                        data = client_socket.recv(1024)
+                        file.write(data)
+                        received_bytes += len(data)
+                        progress_bar(received_bytes, file_size, prefix='Downloading:', suffix='Complete', length=50)
+
+                print("\nFile received successfully")
 
             elif response == "NOT_FOUND":
                 print("File not found")

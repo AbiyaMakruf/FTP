@@ -26,6 +26,7 @@ def handle_client(conn, addr, database_folder):
             if os.path.exists(file_path):
                 # Send file existence confirmation
                 conn.sendall("EXISTS".encode())
+                conn.sendall(str(os.path.getsize(file_path)).encode())
 
                 # Open the file and send its content
                 with open(file_path, 'rb') as file:
