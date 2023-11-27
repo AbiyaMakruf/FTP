@@ -1,6 +1,7 @@
 import os
 import socket
 import threading
+import time
 
 def handle_client(conn, addr, database_folder):
     with conn:
@@ -26,7 +27,9 @@ def handle_client(conn, addr, database_folder):
             if os.path.exists(file_path):
                 # Send file existence confirmation
                 conn.sendall("EXISTS".encode())
+                time.sleep(0.1)
                 conn.sendall(str(os.path.getsize(file_path)).encode())
+                time.sleep(0.1)
 
                 # Open the file and send its content
                 with open(file_path, 'rb') as file:
