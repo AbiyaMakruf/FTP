@@ -6,6 +6,7 @@ def handle_client(conn, addr, database_folder):
     with conn:
         # Receive request type (list, download, or upload)
         request_type = conn.recv(1024).decode()
+        print(request_type)
 
         if request_type == "list":
             # Send list of files in the database folder
@@ -63,7 +64,7 @@ def handle_client(conn, addr, database_folder):
 def start_server():
     host = "192.168.18.109"
     port = 12345
-    database_folder = "./Database"
+    database_folder = "./Upload"
 
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind((host, port))

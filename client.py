@@ -1,4 +1,5 @@
 import socket
+import time
 
 def unggah(file_path):
     host = "192.168.18.109"
@@ -11,6 +12,7 @@ def unggah(file_path):
         # Send request type (list, download, or upload)
         request_type = "upload"
         client_socket.send(request_type.encode())
+        time.sleep(0.1)
 
         # Send file name
         file_name = file_path.split("/")[-1]
