@@ -8,6 +8,10 @@ def unggah(file_path):
     client_socket.connect((host, port))
 
     with client_socket:
+        # Send request type (list, download, or upload)
+        request_type = "upload"
+        client_socket.send(request_type.encode())
+
         # Send file name
         file_name = file_path.split("/")[-1]
         client_socket.send(file_name.encode())
@@ -22,7 +26,7 @@ def unggah(file_path):
         print("File sent successfully")
 
 def download():
-    host = "127.0.0.1"
+    host = "192.168.18.109"
     port = 12345
 
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
