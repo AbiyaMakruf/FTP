@@ -1,14 +1,23 @@
 {
-  "user1": {
-    "password": "password1",
-    "jumlah_login": 4
+  "abiya": {
+    "password": "makruf",
+    "jumlah_login": 17,
+    "isLogin": "false",
+    "jumlah_download": 3,
+    "jumlah_upload": 1
   },
-  "user2": {
-    "password": "password2",
-    "jumlah_login": 1
+  "galih": {
+    "password": "akbar",
+    "jumlah_login": 2,
+    "isLogin": "false",
+    "jumlah_download": 1,
+    "jumlah_upload": 0
   },
-  "user3": {
-    "password": "password3",
-    "jumlah_login": 1
+  "rizal": {
+    "password": "nur",
+    "jumlah_login": 1,
+    "isLogin": "false",
+    "jumlah_download": 0,
+    "jumlah_upload": 0
   }
 }
