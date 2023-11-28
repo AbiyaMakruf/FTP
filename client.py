@@ -94,7 +94,31 @@ def download():
 def login():
     username = input("Username: ")
     password = input("Password: ")
-    return username == "admin" and password == "admin"
+
+    host = "10.20.196.28"
+    port = 12345
+
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_socket.connect((host, port))
+
+    with client_socket:
+        # Send request type (list, download, or upload)
+        request_type = "login"
+        client_socket.send(request_type.encode())
+        time.sleep(0.1)
+
+        # Send user name
+        client_socket.send(username.encode())
+
+        # Send password
+        client_socket.send(password.encode())
+
+        response = client_socket.recv(1024).decode()
+
+    
+        return response == "EXISTS"
+            
+
 
 def menu():
         print("Login berhasil")
@@ -116,7 +140,17 @@ def menu():
             else:
                 print("Menu tidak tersedia\n")
 
+def create_folder_if_not_exists(folder_path):
+    # Periksa apakah folder sudah ada
+    if not os.path.exists(folder_path):
+        # Jika belum ada, buat folder
+        os.makedirs(folder_path)
+
 def main():
+    create_folder_if_not_exists("Database")
+    create_folder_if_not_exists("Download")
+    create_folder_if_not_exists("Upload")
+    
     print("="*20,"Selamat Datang","="*20)
     if login():
         menu()

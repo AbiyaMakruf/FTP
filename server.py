@@ -2,6 +2,11 @@ import os
 import socket
 import threading
 import time
+import json
+
+def save_database(database):
+    with open('database.json', 'w') as file:
+        json.dump(database, file, indent=2)
 
 def handle_client(conn, addr, database_folder):
     with conn:
@@ -9,7 +14,39 @@ def handle_client(conn, addr, database_folder):
         request_type = conn.recv(1024).decode()
         print(request_type)
 
-        if request_type == "list":
+        if request_type == "login":
+            # Receive username and password
+            username = conn.recv(1024).decode()
+            password = conn.recv(1024).decode()
+            print(f"Login request from {addr} with username {username} and password {password}")
+
+            # Check if the user exists
+            user_exists = False
+            try:
+                with open('database.json', 'r') as file:
+                    database = json.load(file)
+            except FileNotFoundError:
+                print("File database.json tidak ditemukan.")
+            
+            user_exists = False
+
+            if username in database and database[username]['password'] == password:
+                print("Login berhasil!")
+                database[username]['jumlah_login'] += 1
+                save_database(database)
+                user_exists = True
+            else:
+                print("Login gagal. Periksa kembali username dan password.")
+
+            # Send user existence confirmation
+            if user_exists:
+                conn.sendall("EXISTS".encode())
+                print(f"User {username} exists")
+            else:
+                conn.sendall("NOT_FOUND".encode())
+                print(f"User {username} not found")
+
+        elif request_type == "list":
             # Send list of files in the database folder
             file_list = "\n".join(os.listdir(database_folder))
             conn.sendall(file_list.encode())
@@ -65,9 +102,27 @@ def handle_client(conn, addr, database_folder):
         else:
             print(f"Invalid request type from {addr}")
 
+def create_folder_if_not_exists(folder_path):
+    # Periksa apakah folder sudah ada
+    if not os.path.exists(folder_path):
+        # Jika belum ada, buat folder
+        os.makedirs(folder_path)
+        print(f"Folder '{folder_path}' berhasil dibuat.")
+    else:
+        print(f"Folder '{folder_path}' sudah ada.")
+
+def get_local_ip():
+    # Dapatkan nama host
+    host_name = socket.gethostname()
+    # Dapatkan alamat IP lokal
+    local_ip = socket.gethostbyname(host_name)
+    return local_ip
+
 def start_server():
-    host = "192.168.18.109"
+    host = get_local_ip()
     port = 12345
+
+    create_folder_if_not_exists("Upload")
     database_folder = "./Upload"
 
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

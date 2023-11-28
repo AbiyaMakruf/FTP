@@ -1,0 +1,14 @@
+{
+  "user1": {
+    "password": "password1",
+    "jumlah_login": 4
+  },
+  "user2": {
+    "password": "password2",
+    "jumlah_login": 1
+  },
+  "user3": {
+    "password": "password3",
+    "jumlah_login": 1
+  }
+}
