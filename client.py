@@ -1,11 +1,16 @@
 import socket
+import json
 import os
 import time
 import sys
 
+def save_database(database):
+    with open('server.json', 'w') as file:
+        json.dump(database, file, indent=2)
+
 def connect():
     #Ubah host dan port sesuai dengan host dan port server
-    host = "192.168.18.109"
+    host = ip
     port = 12345
 
     global client_socket
@@ -155,11 +160,40 @@ def create_folder_if_not_exists(folder_path):
         # Jika belum ada, buat folder
         os.makedirs(folder_path)
 
+def chooseServer():
+    print("="*20,"     Server     ","="*20)
+    print("1. Localhost")
+    print("2. Server")
+    server = input("Pilih server: ")
+
+    global ip
+    ip = "localhost" if server == "1" else updateServer()
+
+def updateServer():
+    print("="*20,"     Alamat Host     ","="*20)
+    print("1. Default server")
+    print("2. Update server")
+    inputUser = str(input("Pilih server: "))
+
+    try:
+        with open('server.json', 'r') as file:
+            server = json.load(file)
+    except FileNotFoundError:
+        print("File database.json tidak ditemukan.")
+
+    if inputUser == "2":
+        inputHost = input("Masukkan alamat host: ")
+        server['server']['host'] = inputHost
+        save_database(server)
+
+    return server['server']['host']
+
 def main():
     create_folder_if_not_exists("Database")
     create_folder_if_not_exists("Download")
     create_folder_if_not_exists("Upload")
 
+    chooseServer()
     menu() if login() else print("Login gagal")
 
 if __name__ == "__main__":
