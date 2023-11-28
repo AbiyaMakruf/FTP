@@ -5,7 +5,7 @@ import time
 import sys
 
 def save_database(database):
-    with open('server.json', 'w') as file:
+    with open('./Json/server.json', 'w') as file:
         json.dump(database, file, indent=2)
 
 def connect():
@@ -167,7 +167,7 @@ def chooseServer():
     server = input("Pilih server: ")
 
     global ip
-    ip = "localhost" if server == "1" else updateServer()
+    ip = "localhost" if server == "1" else (updateServer() if server == "2" else exit())
 
 def updateServer():
     print("="*20,"     Alamat Host     ","="*20)
@@ -176,15 +176,20 @@ def updateServer():
     inputUser = str(input("Pilih server: "))
 
     try:
-        with open('server.json', 'r') as file:
+        with open('./Json/server.json', 'r') as file:
             server = json.load(file)
     except FileNotFoundError:
         print("File database.json tidak ditemukan.")
 
-    if inputUser == "2":
+    if inputUser == "1":
+        pass
+    elif inputUser == "2":
         inputHost = input("Masukkan alamat host: ")
         server['server']['host'] = inputHost
         save_database(server)
+    else:
+        print("Menu tidak tersedia")
+        exit()
 
     return server['server']['host']
 

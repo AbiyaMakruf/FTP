@@ -1,0 +1,37 @@
+{
+  "abiya": {
+    "password": "makruf",
+    "jumlah_login": 0,
+    "isLogin": "True",
+    "jumlah_download": 0,
+    "jumlah_upload": 0
+  },
+  "galih": {
+    "password": "akbar",
+    "jumlah_login": 0,
+    "isLogin": "false",
+    "jumlah_download": 0,
+    "jumlah_upload": 0
+  },
+  "rizal": {
+    "password": "nur",
+    "jumlah_login": 0,
+    "isLogin": "false",
+    "jumlah_download": 0,
+    "jumlah_upload": 0
+  },
+  "jan": {
+    "password": "falih",
+    "jumlah_login": 0,
+    "isLogin": "false",
+    "jumlah_download": 0,
+    "jumlah_upload": 0
+  },
+  "qad": {
+    "password": "rizky",
+    "jumlah_login": 0,
+    "isLogin": "false",
+    "jumlah_download": 0,
+    "jumlah_upload": 0
+  }
+}

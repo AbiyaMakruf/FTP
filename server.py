@@ -5,7 +5,7 @@ import time
 import json
 
 def save_database(database):
-    with open('database.json', 'w') as file:
+    with open('./Json/database.json', 'w') as file:
         json.dump(database, file, indent=2)
 
 def handle_client(conn, addr, database_folder, download_folder, upload_folder):
@@ -23,7 +23,7 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder):
             # Check if the user exists
             user_exists = False
             try:
-                with open('database.json', 'r') as file:
+                with open('./Json/database.json', 'r') as file:
                     database = json.load(file)
             except FileNotFoundError:
                 print("File database.json tidak ditemukan.")
@@ -45,7 +45,7 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder):
 
         elif request_type == "logout":
             try:
-                with open('database.json', 'r') as file:
+                with open('./Json/database.json', 'r') as file:
                     database = json.load(file)
             except FileNotFoundError:
                 print("File database.json tidak ditemukan.")
@@ -86,7 +86,7 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder):
                 print(f"File {file_name} sent successfully to {addr}")
 
                 try:
-                    with open('database.json', 'r') as file:
+                    with open('./Json/database.json', 'r') as file:
                         database = json.load(file)
                 except FileNotFoundError:
                     print("File database.json tidak ditemukan.")
@@ -116,7 +116,7 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder):
             print(f"File {file_name} received successfully from {addr}")
 
             try:
-                with open('database.json', 'r') as file:
+                with open('./Json/database.json', 'r') as file:
                     database = json.load(file)
             except FileNotFoundError:
                 print("File database.json tidak ditemukan.")
