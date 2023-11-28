@@ -179,7 +179,7 @@ def updateServer():
         with open('./Json/server.json', 'r') as file:
             server = json.load(file)
     except FileNotFoundError:
-        print("File database.json tidak ditemukan.")
+        print("File server.json tidak ditemukan.")
 
     if inputUser == "1":
         pass

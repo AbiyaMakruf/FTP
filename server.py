@@ -8,6 +8,31 @@ def save_database(database):
     with open('./Json/database.json', 'w') as file:
         json.dump(database, file, indent=2)
 
+def openJson(opsi):
+        pathFile = "./Json/database.json" if opsi == "database" else "./Json/server.json"
+        try:
+            with open(pathFile, 'r') as file:
+                return json.load(file)
+        except FileNotFoundError:
+            print("File database.json tidak ditemukan.")
+
+def update_statistics():
+    while True:
+        time.sleep(10)  # Update setiap 1 menit
+
+        database = openJson("database")
+
+        user_aktif = [username for username, info in database.items() if info['isLogin'] == 'True']
+        most_downloads_user = max(database, key=lambda x: database[x]['jumlah_download'])
+        most_uploads_user = max(database, key=lambda x: database[x]['jumlah_upload'])
+
+        print("=============================================")
+        print("Server statistics:")
+        print(f"Users aktif({len(user_aktif)}): {user_aktif}")
+
+        print(f"Mos active user for download\t: {most_downloads_user} (total download: {database[most_downloads_user]['jumlah_download']})")
+        print(f"Mos active user for upload\t: {most_uploads_user} (total upload: {database[most_uploads_user]['jumlah_download']})")
+
 def handle_client(conn, addr, database_folder, download_folder, upload_folder):
     with conn:
         # Receive request type (list, download, or upload)
@@ -21,13 +46,7 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder):
             print(f"Login request from {addr} with username {username}")
 
             # Check if the user exists
-            user_exists = False
-            try:
-                with open('./Json/database.json', 'r') as file:
-                    database = json.load(file)
-            except FileNotFoundError:
-                print("File database.json tidak ditemukan.")
-            
+            database = openJson("database")
             user_exists = False
 
             if (username in database) and (database[username]['password'] == password) and (database[username]['isLogin'] == "false"):
@@ -44,12 +63,7 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder):
             conn.sendall("EXISTS".encode()) if user_exists else conn.sendall("NOT_FOUND".encode())
 
         elif request_type == "logout":
-            try:
-                with open('./Json/database.json', 'r') as file:
-                    database = json.load(file)
-            except FileNotFoundError:
-                print("File database.json tidak ditemukan.")
-
+            database = openJson("database")
             database[userAktif]['isLogin'] = "false"
             save_database(database)
             print(f"User {userAktif} berhasil logout!")
@@ -84,12 +98,7 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder):
                         data = file.read(maxrecv)
 
                 print(f"File {file_name} sent successfully to {addr}")
-
-                try:
-                    with open('./Json/database.json', 'r') as file:
-                        database = json.load(file)
-                except FileNotFoundError:
-                    print("File database.json tidak ditemukan.")
+                database = openJson("database")
                 database[userAktif]['jumlah_download'] += 1
                 save_database(database)
 
@@ -114,12 +123,7 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder):
                     data = conn.recv(maxrecv)
 
             print(f"File {file_name} received successfully from {addr}")
-
-            try:
-                with open('./Json/database.json', 'r') as file:
-                    database = json.load(file)
-            except FileNotFoundError:
-                print("File database.json tidak ditemukan.")
+            database = openJson("database")
             database[userAktif]['jumlah_upload'] += 1
             save_database(database)
         else:
@@ -157,6 +161,9 @@ def start_server():
     server_socket.listen(5)
 
     print(f"Server listening on {host}:{port}")
+
+    update_thread = threading.Thread(target=update_statistics, args=())
+    update_thread.start()
 
     while True:
         conn, addr = server_socket.accept()
