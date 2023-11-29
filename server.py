@@ -44,7 +44,7 @@ def update_statistics():
         print(f"Mos active user for upload\t: {most_uploads_user} (total upload: {database[most_uploads_user]['jumlah_upload']})")
         print("=============================================")
 
-def handle_client(conn, addr, database_folder, download_folder, upload_folder):
+def handle_client(conn, addr, database_folder, download_folder, upload_folder,userAktif):
     with conn:
         # Menerima request type (list, download, atau upload)
         request_type = conn.recv(maxrecv).decode()
@@ -71,8 +71,7 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder):
                 user_exists = True
 
                 # 
-                global userAktif
-                userAktif = username
+                userAktif[addr[0]] = username
 
             # Mengirim status login user apakah berhasil atau gagal login
             conn.sendall("EXISTS".encode()) if user_exists else conn.sendall("NOT_FOUND".encode())
@@ -80,9 +79,9 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder):
         # Update status isLogin user menjadi False ketika logout
         elif request_type == "logout":
             database = openJson("database")
-            database[userAktif]['isLogin'] = "false"
+            database[userAktif[addr[0]]]['isLogin'] = "false"
             save_database(database)
-            print(f"{timeStamp()} User {userAktif} berhasil logout!")
+            print(f"{timeStamp()} User {userAktif[addr[0]]} berhasil logout!")
 
         # Mengirim semua nama file yang terdapat di server ke client jika request type == "list"
         elif request_type == "list":
@@ -118,7 +117,7 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder):
                 # Update jumlah_download user
                 print(f"{timeStamp()} File {file_name} sent successfully to {addr}")
                 database = openJson("database")
-                database[userAktif]['jumlah_download'] += 1
+                database[userAktif[addr[0]]]['jumlah_download'] += 1
                 save_database(database)
 
             else:
@@ -145,7 +144,7 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder):
             # Update jumlah_upload user
             print(f"{timeStamp()} File {file_name} received successfully from {addr}")
             database = openJson("database")
-            database[userAktif]['jumlah_upload'] += 1
+            database[userAktif[addr[0]]]['jumlah_upload'] += 1
             save_database(database)
         else:
             print(f"{timeStamp()} Invalid request type from {addr}")
@@ -193,13 +192,16 @@ def start_server():
     update_thread = threading.Thread(target=update_statistics, args=())
     update_thread.start()
 
+    global userAktif
+    userAktif = {} # Membuat dictionary untuk menyimpan userAktif untuk setiap thread
+
     # Listening menunggu koneksi dari client
     while True:
         conn, addr = server_socket.accept()
         print(f"{timeStamp()} Connection from {addr}")
 
         # Create a new thread to handle the client
-        client_thread = threading.Thread(target=handle_client, args=(conn, addr, database_folder,download_folder,upload_folder))
+        client_thread = threading.Thread(target=handle_client, args=(conn, addr, database_folder,download_folder,upload_folder,userAktif))
         client_thread.start()
 
 if __name__ == "__main__":
