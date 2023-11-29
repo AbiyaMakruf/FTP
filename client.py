@@ -1,25 +1,31 @@
+#Melakukan import library yang dibutuhkan
 import socket
 import json
 import os
 import time
 import sys
 
-def save_database(database):
+# Fungsi untuk Menyimpan file json dengan update terbaru
+def save_database(database): 
     with open('./Json/server.json', 'w') as file:
         json.dump(database, file, indent=2)
 
+# Menghubungkan client dengan alamat host server
 def connect():
-    #Ubah host dan port sesuai dengan host dan port server
+    # Ubah host dan port sesuai dengan host dan port server
     host = ip
     port = 12345
 
+    #Variabel global agar bisa diakses di fungsi lain
     global client_socket
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect((host, port))
 
+    #Maksimum bytes yang bisa diterima oleh client
     global maxrecv
     maxrecv = 8192
 
+# Progress bar untuk menampilkan proses upload dan download file
 def progress_bar(iteration, total, prefix='', suffix='', length=50, fill='█'):
     percent = ("{0:.1f}").format(100 * (iteration / float(total)))
     filled_length = int(length * iteration // total)
@@ -27,10 +33,11 @@ def progress_bar(iteration, total, prefix='', suffix='', length=50, fill='█'):
     sys.stdout.write('\r%s |%s| %s%% %s' % (prefix, bar, percent, suffix))
     sys.stdout.flush()
 
+# Mengupload file ke server dengan mengisi path file
 def unggah(file_path):
     connect()
     with client_socket:
-        # Send request type (list, download, or upload)
+        # Send request type (upload)
         request_type = "upload"
         client_socket.send(request_type.encode())
         time.sleep(0.1)
@@ -52,6 +59,7 @@ def unggah(file_path):
 
         print("\nFile sent successfully")
 
+# Mendownload dan melihat list file yang ada di server dengan mengisi request type (list atau download)
 def download():
     connect()
     with client_socket:
@@ -100,7 +108,9 @@ def download():
         else:
             print("Invalid request type. Please enter 'list' or 'download'.")
 
-def login():
+# Fungsi untuk meminta input username dan password dari user
+# lalu mengirimkan ke server untuk dilakukan verifikasi/authentication
+def login(): 
     print("="*20,"Selamat Datang","="*20)
     username = input("Username: ")
     password = input("Password: ")
@@ -123,13 +133,15 @@ def login():
 
         return response == "EXISTS"
 
+# Logout dari server dan mengakhiri program
 def logout():
         connect()
         request_type = "logout"
         client_socket.send(request_type.encode())
         time.sleep(0.1)
 
-def menu():
+# Menampilkan menu utama setelah login berhasil
+def menu(): 
         print("\nLogin berhasil")
         print("="*20,"     Menu     ","="*20)
 
@@ -154,12 +166,14 @@ def menu():
             logout()
             print("\nProgram dihentikan")
 
-def create_folder_if_not_exists(folder_path):
+# Membuat folder baru jika folder belum ada di dalam direktori client
+def create_folder_if_not_exists(folder_path): 
     # Periksa apakah folder sudah ada
     if not os.path.exists(folder_path):
         # Jika belum ada, buat folder
         os.makedirs(folder_path)
 
+# Memilih server yang akan digunakan (localhost atau alamat host server)
 def chooseServer():
     print("="*20,"     Server     ","="*20)
     print("1. Localhost")
@@ -169,7 +183,8 @@ def chooseServer():
     global ip
     ip = "localhost" if server == "1" else (updateServer() if server == "2" else exit())
 
-def updateServer():
+# Mengubah alamat host server jika user memilih opsi update server
+def updateServer(): 
     print("="*20,"     Alamat Host     ","="*20)
     print("1. Default server")
     print("2. Update server")
@@ -193,6 +208,7 @@ def updateServer():
 
     return server['server']['host']
 
+# Main program
 def main():
     create_folder_if_not_exists("Database")
     create_folder_if_not_exists("Download")
@@ -203,4 +219,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
