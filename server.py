@@ -176,9 +176,9 @@ def start_server():
 
     # inisiasi folder yang dibutuhkan
     create_folder_if_not_exists("Upload")
-    database_folder = "./Database"
-    download_folder = "./Download"
-    upload_folder =  "./Upload"
+    database_folder = "/Database"
+    download_folder = "/Download"
+    upload_folder =  "/Upload"
 
     # membuat koneksi TCP
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
