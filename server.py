@@ -31,7 +31,7 @@ def update_statistics():
         print(f"Users aktif({len(user_aktif)}): {user_aktif}")
 
         print(f"Mos active user for download\t: {most_downloads_user} (total download: {database[most_downloads_user]['jumlah_download']})")
-        print(f"Mos active user for upload\t: {most_uploads_user} (total upload: {database[most_uploads_user]['jumlah_download']})")
+        print(f"Mos active user for upload\t: {most_uploads_user} (total upload: {database[most_uploads_user]['jumlah_upload']})")
 
 def handle_client(conn, addr, database_folder, download_folder, upload_folder):
     with conn:

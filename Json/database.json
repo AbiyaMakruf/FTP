@@ -8,17 +8,17 @@
   },
   "galih": {
     "password": "akbar",
-    "jumlah_login": 2,
-    "isLogin": "True",
-    "jumlah_download": 0,
-    "jumlah_upload": 0
+    "jumlah_login": 3,
+    "isLogin": "false",
+    "jumlah_download": 5,
+    "jumlah_upload": 2
   },
   "rizal": {
     "password": "nur",
-    "jumlah_login": 1,
+    "jumlah_login": 4,
     "isLogin": "false",
-    "jumlah_download": 0,
-    "jumlah_upload": 0
+    "jumlah_download": 1,
+    "jumlah_upload": 1
   },
   "jan": {
     "password": "falih",
@@ -29,9 +29,9 @@
   },
   "qad": {
     "password": "rizky",
-    "jumlah_login": 0,
+    "jumlah_login": 7,
     "isLogin": "false",
-    "jumlah_download": 0,
-    "jumlah_upload": 0
+    "jumlah_download": 3,
+    "jumlah_upload": 6
   }
 }
