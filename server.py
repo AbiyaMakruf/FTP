@@ -4,6 +4,11 @@ import socket
 import threading
 import time
 import json
+from datetime import datetime
+
+#Mengembalikan waktu saat ini
+def timeStamp():
+    return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 # Menyimpan data yang baru ke dalam database
 def save_database(database):
@@ -17,7 +22,7 @@ def openJson(opsi):
             with open(pathFile, 'r') as file:
                 return json.load(file)
         except FileNotFoundError:
-            print("File database.json tidak ditemukan.")
+            print(f"{timeStamp()} File database.json tidak ditemukan.")
 
 def update_statistics():
     # Automation statis most active user
@@ -32,11 +37,12 @@ def update_statistics():
         most_uploads_user = max(database, key=lambda x: database[x]['jumlah_upload'])
 
         print("=============================================")
-        print("Server statistics:")
-        print(f"Users aktif({len(user_aktif)}): {user_aktif}")
+        print(f"Server statistics {timeStamp()}: ")
+        print(f"Active Users({len(user_aktif)})\t\t\t: {user_aktif}")
 
         print(f"Mos active user for download\t: {most_downloads_user} (total download: {database[most_downloads_user]['jumlah_download']})")
         print(f"Mos active user for upload\t: {most_uploads_user} (total upload: {database[most_uploads_user]['jumlah_upload']})")
+        print("=============================================")
 
 def handle_client(conn, addr, database_folder, download_folder, upload_folder):
     with conn:
@@ -49,7 +55,7 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder):
             # Menerima username and password
             username = conn.recv(maxrecv).decode()
             password = conn.recv(maxrecv).decode()
-            print(f"Login request from {addr} with username {username}")
+            print(f"{timeStamp()} Login request from {addr} with username {username}")
 
             # Check if the user exists
             database = openJson("database")
@@ -58,7 +64,7 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder):
             if (username in database) and (database[username]['password'] == password) and (database[username]['isLogin'] == "false"):
 
                 # Update status isLogin user menjadi True
-                print(f"User {username} berhasil login!")
+                print(f"{timeStamp()} User {username} berhasil login!")
                 database[username]['jumlah_login'] += 1
                 database[username]['isLogin'] = "True"
                 save_database(database)
@@ -76,20 +82,20 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder):
             database = openJson("database")
             database[userAktif]['isLogin'] = "false"
             save_database(database)
-            print(f"User {userAktif} berhasil logout!")
+            print(f"{timeStamp()} User {userAktif} berhasil logout!")
 
         # Mengirim semua nama file yang terdapat di server ke client jika request type == "list"
         elif request_type == "list":
             # Send list of files in the database folder
             file_list = "\n".join(os.listdir(database_folder))
             conn.sendall(file_list.encode())
-            print(f"File list sent successfully to {addr}")
+            print(f"{timeStamp()} File list sent successfully to {addr}")
 
         # Mengirim file jika request type nya adalah "download"
         elif request_type == "download":
             # Menerima file name dari klien
             file_name = conn.recv(maxrecv).decode()
-            print(f"Receiving file {file_name} from {addr}")
+            print(f"{timeStamp()} Receiving file {file_name} from {addr}")
 
             # Construct the file path
             file_path = os.path.join(database_folder, file_name)
@@ -110,7 +116,7 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder):
                         data = file.read(maxrecv)
 
                 # Update jumlah_download user
-                print(f"File {file_name} sent successfully to {addr}")
+                print(f"{timeStamp()} File {file_name} sent successfully to {addr}")
                 database = openJson("database")
                 database[userAktif]['jumlah_download'] += 1
                 save_database(database)
@@ -118,13 +124,13 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder):
             else:
                 # Send file not found notification
                 conn.sendall("NOT_FOUND".encode())
-                print(f"File {file_name} not found for {addr}")
+                print(f"{timeStamp()} File {file_name} not found for {addr}")
 
         # Menerima file jika request type nya adalah "upload"
         elif request_type == "upload":
             # Receive file name
             file_name = conn.recv(maxrecv).decode()
-            print(f"Receiving file {file_name} from {addr}")
+            print(f"{timeStamp()} Receiving file {file_name} from {addr}")
 
             # Construct the file path
             file_path = os.path.join(upload_folder, file_name)
@@ -137,19 +143,19 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder):
                     data = conn.recv(maxrecv)
 
             # Update jumlah_upload user
-            print(f"File {file_name} received successfully from {addr}")
+            print(f"{timeStamp()} File {file_name} received successfully from {addr}")
             database = openJson("database")
             database[userAktif]['jumlah_upload'] += 1
             save_database(database)
         else:
-            print(f"Invalid request type from {addr}")
+            print(f"{timeStamp()} Invalid request type from {addr}")
 
 def create_folder_if_not_exists(folder_path):
     # Periksa apakah folder sudah ada
     if not os.path.exists(folder_path):
         # Jika belum ada, buat folder
         os.makedirs(folder_path)
-        print(f"Folder '{folder_path}' berhasil dibuat.")
+        print(f"{timeStamp()} Folder '{folder_path}' berhasil dibuat.")
 
 # Inisiasi alamat IP dan port server
 def get_local_ip():
@@ -190,7 +196,7 @@ def start_server():
     # Listening menunggu koneksi dari client
     while True:
         conn, addr = server_socket.accept()
-        print(f"Connection from {addr}")
+        print(f"{timeStamp()} Connection from {addr}")
 
         # Create a new thread to handle the client
         client_thread = threading.Thread(target=handle_client, args=(conn, addr, database_folder,download_folder,upload_folder))
