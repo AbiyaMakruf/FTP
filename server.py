@@ -17,7 +17,7 @@ def save_database(database):
 
 # Membuka file json berdasarkan opsi yang diinginkan
 def openJson(opsi):
-        pathFile = "./Json/database.json" if opsi == "database" else "./Json/server.json"
+        pathFile = "Json/database.json" if opsi == "database" else "Json/server.json"
         try:
             with open(pathFile, 'r') as file:
                 return json.load(file)
