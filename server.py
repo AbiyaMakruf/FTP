@@ -1,13 +1,16 @@
+# import modul yang dibutuhkan
 import os
 import socket
 import threading
 import time
 import json
 
+# Menyimpan data yang baru ke dalam database
 def save_database(database):
     with open('./Json/database.json', 'w') as file:
         json.dump(database, file, indent=2)
 
+# Membuka file json berdasarkan opsi yang diinginkan
 def openJson(opsi):
         pathFile = "./Json/database.json" if opsi == "database" else "./Json/server.json"
         try:
@@ -17,11 +20,13 @@ def openJson(opsi):
             print("File database.json tidak ditemukan.")
 
 def update_statistics():
+    # Automation statis most active user
     while True:
         time.sleep(10)  # Update setiap 1 menit
 
         database = openJson("database")
 
+        # Inisiasi user aktif, most download, most upload user
         user_aktif = [username for username, info in database.items() if info['isLogin'] == 'True']
         most_downloads_user = max(database, key=lambda x: database[x]['jumlah_download'])
         most_uploads_user = max(database, key=lambda x: database[x]['jumlah_upload'])
@@ -35,12 +40,13 @@ def update_statistics():
 
 def handle_client(conn, addr, database_folder, download_folder, upload_folder):
     with conn:
-        # Receive request type (list, download, or upload)
+        # Menerima request type (list, download, atau upload)
         request_type = conn.recv(maxrecv).decode()
 
+        # pengecekan request type
         if request_type == "login":
-            # Receive username and password
 
+            # Menerima username and password
             username = conn.recv(maxrecv).decode()
             password = conn.recv(maxrecv).decode()
             print(f"Login request from {addr} with username {username}")
@@ -50,32 +56,38 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder):
             user_exists = False
 
             if (username in database) and (database[username]['password'] == password) and (database[username]['isLogin'] == "false"):
+
+                # Update status isLogin user menjadi True
                 print(f"User {username} berhasil login!")
                 database[username]['jumlah_login'] += 1
                 database[username]['isLogin'] = "True"
                 save_database(database)
                 user_exists = True
 
+                # 
                 global userAktif
                 userAktif = username
 
-            # Send user existence confirmation
+            # Mengirim status login user apakah berhasil atau gagal login
             conn.sendall("EXISTS".encode()) if user_exists else conn.sendall("NOT_FOUND".encode())
 
+        # Update status isLogin user menjadi False ketika logout
         elif request_type == "logout":
             database = openJson("database")
             database[userAktif]['isLogin'] = "false"
             save_database(database)
             print(f"User {userAktif} berhasil logout!")
 
+        # Mengirim semua nama file yang terdapat di server ke client jika request type == "list"
         elif request_type == "list":
             # Send list of files in the database folder
             file_list = "\n".join(os.listdir(database_folder))
             conn.sendall(file_list.encode())
             print(f"File list sent successfully to {addr}")
 
+        # Mengirim file jika request type nya adalah "download"
         elif request_type == "download":
-            # Receive file name
+            # Menerima file name dari klien
             file_name = conn.recv(maxrecv).decode()
             print(f"Receiving file {file_name} from {addr}")
 
@@ -97,6 +109,7 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder):
                         conn.sendall(data)
                         data = file.read(maxrecv)
 
+                # Update jumlah_download user
                 print(f"File {file_name} sent successfully to {addr}")
                 database = openJson("database")
                 database[userAktif]['jumlah_download'] += 1
@@ -107,6 +120,7 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder):
                 conn.sendall("NOT_FOUND".encode())
                 print(f"File {file_name} not found for {addr}")
 
+        # Menerima file jika request type nya adalah "upload"
         elif request_type == "upload":
             # Receive file name
             file_name = conn.recv(maxrecv).decode()
@@ -122,6 +136,7 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder):
                     file.write(data)
                     data = conn.recv(maxrecv)
 
+            # Update jumlah_upload user
             print(f"File {file_name} received successfully from {addr}")
             database = openJson("database")
             database[userAktif]['jumlah_upload'] += 1
@@ -136,6 +151,7 @@ def create_folder_if_not_exists(folder_path):
         os.makedirs(folder_path)
         print(f"Folder '{folder_path}' berhasil dibuat.")
 
+# Inisiasi alamat IP dan port server
 def get_local_ip():
     # Dapatkan nama host
     host_name = socket.gethostname()
@@ -145,26 +161,33 @@ def get_local_ip():
     return local_ip
 
 def start_server():
+    # inisiasi host dan port server
     host = get_local_ip()
     port = 12345
 
+    # inisiasi maxreceive byte yang bisa diterima
     global maxrecv
     maxrecv = 8192
 
+    # inisiasi folder yang dibutuhkan
     create_folder_if_not_exists("Upload")
     database_folder = "./Database"
     download_folder = "./Download"
     upload_folder =  "./Upload"
 
+    # membuat koneksi TCP
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind((host, port))
     server_socket.listen(5)
 
+
     print(f"Server listening on {host}:{port}")
 
+    # Membuat thread
     update_thread = threading.Thread(target=update_statistics, args=())
     update_thread.start()
 
+    # Listening menunggu koneksi dari client
     while True:
         conn, addr = server_socket.accept()
         print(f"Connection from {addr}")
@@ -174,4 +197,5 @@ def start_server():
         client_thread.start()
 
 if __name__ == "__main__":
+    # Memulai server
     start_server()
