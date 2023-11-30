@@ -176,6 +176,8 @@ def start_server():
 
     # inisiasi folder yang dibutuhkan
     create_folder_if_not_exists("Upload")
+    create_folder_if_not_exists("Database")
+    create_folder_if_not_exists("Download")
     database_folder = "./Database"
     download_folder = "./Download"
     upload_folder =  "./Upload"
