@@ -33,7 +33,7 @@ def unggah(file_path):
         # Send request type (list, download, or upload)
         request_type = "upload"
         client_socket.send(request_type.encode())
-        time.sleep(0.1)
+        time.sleep(1)
 
         # Send file name
         file_name = file_path.split("/")[-1]
@@ -111,7 +111,7 @@ def login():
         # Send request type (list, download, or upload)
         request_type = "login"
         client_socket.send(request_type.encode())
-        time.sleep(0.1)
+        time.sleep(1)
 
         # Send user name
         client_socket.send(username.encode())
@@ -127,7 +127,7 @@ def logout():
         connect()
         request_type = "logout"
         client_socket.send(request_type.encode())
-        time.sleep(0.1)
+        time.sleep(1)
 
 def menu():
         print("\nLogin berhasil")

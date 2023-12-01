@@ -103,9 +103,9 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder,us
             if os.path.exists(file_path):
                 # Send file existence confirmation
                 conn.sendall("EXISTS".encode())
-                time.sleep(0.1)
+                time.sleep(1)
                 conn.sendall(str(os.path.getsize(file_path)).encode())
-                time.sleep(0.1)
+                time.sleep(1)
 
                 # Open the file and send its content
                 with open(file_path, 'rb') as file:
@@ -178,9 +178,9 @@ def start_server():
     create_folder_if_not_exists("Database")
     create_folder_if_not_exists("Download")
     create_folder_if_not_exists("Upload")
-    database_folder = "/Database"
-    download_folder = "/Download"
-    upload_folder =  "/Upload"
+    database_folder = "./Database"
+    download_folder = "./Download"
+    upload_folder =  "./Upload"
 
     # membuat koneksi TCP
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
