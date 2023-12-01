@@ -15,16 +15,16 @@
   },
   "rizal": {
     "password": "nur",
-    "jumlah_login": 5,
+    "jumlah_login": 6,
     "isLogin": "false",
     "jumlah_download": 1,
     "jumlah_upload": 1
   },
   "jan": {
     "password": "falih",
-    "jumlah_login": 1,
+    "jumlah_login": 3,
     "isLogin": "false",
-    "jumlah_download": 0,
+    "jumlah_download": 1,
     "jumlah_upload": 0
   },
   "qad": {

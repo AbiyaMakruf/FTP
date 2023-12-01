@@ -40,8 +40,8 @@ def update_statistics():
         print(f"Server statistics {timeStamp()}: ")
         print(f"Active Users({len(user_aktif)})\t\t\t: {user_aktif}")
 
-        print(f"Mos active user for download\t: {most_downloads_user} (total download: {database[most_downloads_user]['jumlah_download']})")
-        print(f"Mos active user for upload\t: {most_uploads_user} (total upload: {database[most_uploads_user]['jumlah_upload']})")
+        print(f"Most active user for download\t: {most_downloads_user} (total download: {database[most_downloads_user]['jumlah_download']})")
+        print(f"Most active user for upload\t: {most_uploads_user} (total upload: {database[most_uploads_user]['jumlah_upload']})")
         print("=============================================")
 
 def handle_client(conn, addr, database_folder, download_folder, upload_folder,userAktif):
@@ -188,7 +188,7 @@ def start_server():
 
     print(f"Server listening on {host}:{port}")
 
-    # Membuat thread
+    # Membuat thread untuk update statistic server
     update_thread = threading.Thread(target=update_statistics, args=())
     update_thread.start()
 
