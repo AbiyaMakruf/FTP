@@ -11,18 +11,22 @@ def timeStamp():
     return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 # Menyimpan data yang baru ke dalam database
-def save_database(database):
-    with open('./Json/database.json', 'w') as file:
-        json.dump(database, file, indent=2)
+def save_database(opsi,database):
+    if opsi == "database":
+        with open('./Json/database.json', 'w') as file:
+            json.dump(database, file, indent=2)
+    elif opsi == "loadBalancer":
+        with open('./Json/loadBalancer.json', 'w') as file:
+            json.dump(database, file, indent=2)
 
 # Membuka file json berdasarkan opsi yang diinginkan
 def openJson(opsi):
-        pathFile = "./Json/database.json" if opsi == "database" else "./Json/server.json"
+        pathFile = "./Json/database.json" if opsi == "database" else "./Json/loadBalancer.json"
         try:
             with open(pathFile, 'r') as file:
                 return json.load(file)
         except FileNotFoundError:
-            print(f"{timeStamp()} File database.json tidak ditemukan.")
+            print(f"{timeStamp()} File json tidak ditemukan.")
 
 def update_statistics():
     # Automation statis most active user
@@ -50,7 +54,21 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder,us
         request_type = conn.recv(maxrecv).decode()
 
         # pengecekan request type
-        if request_type == "login":
+        if request_type == "status":
+            print("Masukkk")
+            # Menerima status dari server
+            loadBalancer = openJson("loadBalancer")
+            status = "FULL" if loadBalancer["server1"]["total"] >= 1 else "NOT_FULL"
+
+            # Mengirim status server ke client
+            conn.sendall(status.encode())
+            time.sleep(1)
+
+            # Mengirim IP server2 jika server1 penuh
+            if status == "FULL":
+                conn.sendall("1234".encode())
+
+        elif request_type == "login":
 
             # Menerima username and password
             username = conn.recv(maxrecv).decode()
@@ -67,11 +85,16 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder,us
                 print(f"{timeStamp()} User {username} berhasil login!")
                 database[username]['jumlah_login'] += 1
                 database[username]['isLogin'] = "True"
-                save_database(database)
+                save_database("database",database)
                 user_exists = True
 
-                # 
+                # Thread
                 userAktif[addr[0]] = username
+
+                # Update load balancer
+                loadBalancer = openJson("loadBalancer")
+                loadBalancer["server1"]["total"] +=1
+                save_database("loadBalancer",loadBalancer)
 
             # Mengirim status login user apakah berhasil atau gagal login
             conn.sendall("EXISTS".encode()) if user_exists else conn.sendall("NOT_FOUND".encode())
@@ -80,8 +103,13 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder,us
         elif request_type == "logout":
             database = openJson("database")
             database[userAktif[addr[0]]]['isLogin'] = "false"
-            save_database(database)
+            save_database("database",database)
             print(f"{timeStamp()} User {userAktif[addr[0]]} berhasil logout!")
+
+            # Update load balancer
+            loadBalancer = openJson("loadBalancer")
+            loadBalancer["server1"]["total"] -=1
+            save_database("loadBalancer",loadBalancer)
 
         # Mengirim semua nama file yang terdapat di server ke client jika request type == "list"
         elif request_type == "list":
@@ -118,7 +146,7 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder,us
                 print(f"{timeStamp()} File {file_name} sent successfully to {addr}")
                 database = openJson("database")
                 database[userAktif[addr[0]]]['jumlah_download'] += 1
-                save_database(database)
+                save_database("database",database)
 
             else:
                 # Send file not found notification
@@ -145,7 +173,7 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder,us
             print(f"{timeStamp()} File {file_name} received successfully from {addr}")
             database = openJson("database")
             database[userAktif[addr[0]]]['jumlah_upload'] += 1
-            save_database(database)
+            save_database("database",database)
         else:
             print(f"{timeStamp()} Invalid request type from {addr}")
 
