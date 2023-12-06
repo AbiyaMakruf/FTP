@@ -1,11 +1,11 @@
 {
   "server1": {
-    "host": "192.168.1.13",
+    "host": "192.168.18.25",
     "port": 12345,
     "total": 0
   },
   "server2": {
-    "host": "1234",
+    "host": "localhost",
     "port": 123456,
     "total": 0
   }

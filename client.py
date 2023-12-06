@@ -111,7 +111,6 @@ def login():
     client_socket.send(request_type.encode())
     time.sleep(1)
     response = client_socket.recv(maxrecv).decode()
-    print(response)
 
     #Jika server1 penuh, pindah server2
     try:
@@ -120,7 +119,6 @@ def login():
     except FileNotFoundError:
         print("File server.json tidak ditemukan.")
     if response == "FULL":
-        print("Masuk sini")
         response = client_socket.recv(maxrecv).decode()
         server['server2']['host'] = response
         save_database(server)

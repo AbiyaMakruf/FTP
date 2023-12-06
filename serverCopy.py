@@ -6,6 +6,44 @@ import time
 import json
 from datetime import datetime
 
+#Sinkronisasi antara 2 server
+def sinkronisasi():
+    time.sleep(1)
+
+    #Ubah host dan port sesuai dengan host dan port server
+    host = "localhost"
+    port = 12345
+
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_socket.connect((host, port))
+
+    maxrecv = 8192
+
+    request_type = "sinkronisasi"
+    client_socket.send(request_type.encode())
+    time.sleep(1)
+
+    request_type = "listDatabase"
+    client_socket.send(request_type.encode())
+    time.sleep(1)
+
+    listFiles = client_socket.recv(maxrecv).decode()
+
+    files = os.listdir("Database/")
+    # Filter hanya file, bukan direktori
+    files = [file for file in files if os.path.isfile(os.path.join("Database/", file))]
+
+    # Menggunakan set untuk mendapatkan elemen yang berbeda
+    differences = list(set(files) - set(listFiles))
+
+    # Output
+    print("Elemen yang berbeda:", differences)
+
+    #Sinkronisasi database
+    #Sinkronisasi database.json 
+    #Sinkronisasi upload
+
+
 #Mengembalikan waktu saat ini
 def timeStamp():
     return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -52,9 +90,21 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder,us
     with conn:
         # Menerima request type (list, download, atau upload)
         request_type = conn.recv(maxrecv).decode()
+        if request_type == "sinkronisasi":
+            if request_type == "listDatabase":
+                # Membaca isi folder
+                files = os.listdir("Database/")
+        
+                # Filter hanya file, bukan direktori
+                files = [file for file in files if os.path.isfile(os.path.join("Database/", file))]
+                conn.sendall(files.encode())
+            elif request_type == "listUpload":
+                pass
+            elif request_type == "database.json":
+                pass
 
         # pengecekan request type
-        if request_type == "status":
+        elif request_type == "status":
             # Menerima status dari server
             loadBalancer = openJson("loadBalancer")
             status = "FULL" if loadBalancer["server1"]["total"] >= 1 else "NOT_FULL"
@@ -66,8 +116,6 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder,us
             # Mengirim IP server2 jika server1 penuh
             if status == "FULL":
                 conn.sendall("localhost".encode())
-                print()
-                print(f"{timeStamp()} Connection from {addr} redirected to server2")
 
         elif request_type == "login":
 
@@ -222,6 +270,11 @@ def start_server():
     # Membuat thread untuk update statistic server
     update_thread = threading.Thread(target=update_statistics, args=())
     update_thread.start()
+
+    # Membuat thread untuk sinkronisasi server
+    sinkronisasi_thread = threading.Thread(target=sinkronisasi, args=())
+    sinkronisasi_thread.start()
+
 
     global userAktif
     userAktif = {} # Membuat dictionary untuk menyimpan userAktif untuk setiap thread
