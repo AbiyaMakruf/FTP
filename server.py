@@ -65,8 +65,7 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder,us
 
             # Mengirim IP server2 jika server1 penuh
             if status == "FULL":
-                conn.sendall("localhost".encode())
-                print()
+                conn.sendall("54.255.190.78".encode())
                 print(f"{timeStamp()} Connection from {addr} redirected to server2")
 
         elif request_type == "login":

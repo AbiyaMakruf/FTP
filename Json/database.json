@@ -1,10 +1,10 @@
 {
   "abiya": {
     "password": "makruf",
-    "jumlah_login": 32,
+    "jumlah_login": 35,
     "isLogin": "false",
-    "jumlah_download": 1,
-    "jumlah_upload": 0
+    "jumlah_download": 0,
+    "jumlah_upload": 1
   },
   "galih": {
     "password": "akbar",
