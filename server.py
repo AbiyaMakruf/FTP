@@ -4,7 +4,20 @@ import socket
 import threading
 import time
 import json
+import subprocess
 from datetime import datetime
+
+# Fungsi untuk melakukan sync dengan AWS S3
+def sync():
+    while True:
+        time.sleep(10)
+        bat_file_path = 'syncS3.sh'
+        try:
+            print("Syncing with AWS S3...")
+            subprocess.run([bat_file_path], check=True)
+            print("Syncing with AWS S3 done!")
+        except subprocess.CalledProcessError as e:
+            print(f"Error running {bat_file_path}: {e}")
 
 #Mengembalikan waktu saat ini
 def timeStamp():
@@ -193,6 +206,10 @@ def start_server():
     # Membuat thread untuk update statistic server
     update_thread = threading.Thread(target=update_statistics, args=())
     update_thread.start()
+
+    # Membuat thread untuk sync dengan AWS S3
+    syncS3_thread = threading.Thread(target=sync, args=())
+    syncS3_thread.start()
 
     global userAktif
     userAktif = {} # Membuat dictionary untuk menyimpan userAktif untuk setiap thread
