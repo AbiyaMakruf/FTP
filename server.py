@@ -4,7 +4,23 @@ import socket
 import threading
 import time
 import json
+import subprocess
 from datetime import datetime
+
+# Fungsi untuk melakukan sync dengan AWS S3
+def sync():
+    while True:
+        bat_file_path_linux = 'syncS3.sh'
+        bat_file_path_windows = 'syncS3.sh'
+        
+        try:
+            print("Syncing with AWS S3...")
+            subprocess.run(['bash',bat_file_path_linux], check=True)
+            #subprocess.run([bat_file_path_windows], check=True)
+            print("Syncing with AWS S3 done!")
+        except subprocess.CalledProcessError as e:
+            print(f"Error running: {e}")
+        time.sleep(10)
 
 #Mengembalikan waktu saat ini
 def timeStamp():
@@ -27,8 +43,6 @@ def openJson(opsi):
 def update_statistics():
     # Automation statis most active user
     while True:
-        time.sleep(10)  # Update setiap 1 menit
-
         database = openJson("database")
 
         # Inisiasi user aktif, most download, most upload user
@@ -43,6 +57,7 @@ def update_statistics():
         print(f"Most active user for download\t: {most_downloads_user} (total download: {database[most_downloads_user]['jumlah_download']})")
         print(f"Most active user for upload\t: {most_uploads_user} (total upload: {database[most_uploads_user]['jumlah_upload']})")
         print("=============================================")
+        time.sleep(10)
 
 def handle_client(conn, addr, database_folder, download_folder, upload_folder,userAktif):
     with conn:
@@ -193,6 +208,10 @@ def start_server():
     # Membuat thread untuk update statistic server
     update_thread = threading.Thread(target=update_statistics, args=())
     update_thread.start()
+
+    # Membuat thread untuk sync dengan AWS S3
+    syncS3_thread = threading.Thread(target=sync, args=())
+    syncS3_thread.start()
 
     global userAktif
     userAktif = {} # Membuat dictionary untuk menyimpan userAktif untuk setiap thread
