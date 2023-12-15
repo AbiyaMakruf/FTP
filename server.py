@@ -27,7 +27,7 @@ def timeStamp():
 # Menyimpan data yang baru ke dalam database
 def save_database(database):
     try:
-        command = 'aws s3 sync s3://rpl-pbo-sister/sister/Json/database.json ./Json/database.json'
+        command = 'aws s3 sync s3://rpl-pbo-sister/sister/Json ./Json'
         subprocess.run(command,shell=True, check=True)
     except subprocess.CalledProcessError as e:
         print(f"Error running: {e}")
@@ -36,7 +36,7 @@ def save_database(database):
         json.dump(database, file, indent=2)
 
     try:
-        command = 'aws s3 sync ./Json/database.json s3://rpl-pbo-sister/sister/Json/database.json'
+        command = 'aws s3 sync ./Json s3://rpl-pbo-sister/sister/Json --include "./Json/database.json"'
         subprocess.run(command,shell=True, check=True)
     except subprocess.CalledProcessError as e:
         print(f"Error running: {e}")
