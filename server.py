@@ -10,13 +10,11 @@ from datetime import datetime
 # Fungsi untuk melakukan sync dengan AWS S3
 def sync():
     while True:
-        bat_file_path_linux = 'syncS3.sh'
-        bat_file_path_windows = 'syncS3.bat'
+        command = 'aws s3 sync s3://rpl-pbo-sister/sister/Database/ ./Database --delete'
         
         try:
             print("Syncing with AWS S3...")
-            subprocess.run(['bash',bat_file_path_linux], check=True)
-            #subprocess.run([bat_file_path_windows], check=True)
+            subprocess.run(command,shell=True, check=True)
             print("Syncing with AWS S3 done!")
         except subprocess.CalledProcessError as e:
             print(f"Error running: {e}")
@@ -28,8 +26,20 @@ def timeStamp():
 
 # Menyimpan data yang baru ke dalam database
 def save_database(database):
+    try:
+        command = 'aws s3 sync s3://rpl-pbo-sister/sister/Json/database.json ./Json/database.json'
+        subprocess.run(command,shell=True, check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Error running: {e}")
+
     with open('./Json/database.json', 'w') as file:
         json.dump(database, file, indent=2)
+
+    try:
+        command = 'aws s3 sync ./Json/database.json aws s3 sync s3://rpl-pbo-sister/sister/Json/database.json ./Json/database.json'
+        subprocess.run(command,shell=True, check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Error running: {e}")
 
 def save_status(status):
     with open('./Json/status.json', 'w') as file:
@@ -189,7 +199,8 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder,us
             save_database(database)
 
             try:
-                subprocess.run(['bash',"sync-upload-S3.sh"], check=True)
+                command = 'aws s3 sync ./Upload s3://rpl-pbo-sister/sister/Database/'
+                subprocess.run(command, shell=True, check=True)
                 #subprocess.run(["sync-upload-S3.bat"], check=True)
             except subprocess.CalledProcessError as e:
                 print(f"Error running: {e}")
