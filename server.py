@@ -11,7 +11,7 @@ from datetime import datetime
 def sync():
     while True:
         bat_file_path_linux = 'syncS3.sh'
-        bat_file_path_windows = 'syncS3.sh'
+        bat_file_path_windows = 'syncS3.bat'
         
         try:
             print("Syncing with AWS S3...")
@@ -31,9 +31,18 @@ def save_database(database):
     with open('./Json/database.json', 'w') as file:
         json.dump(database, file, indent=2)
 
+def save_status(status):
+    with open('./Json/status.json', 'w') as file:
+        json.dump(status, file, indent=2)
+
 # Membuka file json berdasarkan opsi yang diinginkan
 def openJson(opsi):
-        pathFile = "./Json/database.json" if opsi == "database" else "./Json/server.json"
+        file_paths = {
+            "database": "./Json/database.json",
+            "server": "./Json/server.json",
+            "status": "./Json/status.json"
+        }
+        pathFile = file_paths.get(opsi, None)
         try:
             with open(pathFile, 'r') as file:
                 return json.load(file)
@@ -64,8 +73,18 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder,us
         # Menerima request type (list, download, atau upload)
         request_type = conn.recv(maxrecv).decode()
 
+        #Pengecekan apakah server full atau tidak
+        if request_type == "status":
+            data = openJson("status")
+            jumlahLogin = data["jumlahLogin"]
+
+            if jumlahLogin >= 1 :
+                conn.sendall("FULL".encode())
+                time.sleep(1)
+                conn.sendall("47.128.250.64".encode())
+
         # pengecekan request type
-        if request_type == "login":
+        elif request_type == "login":
 
             # Menerima username and password
             username = conn.recv(maxrecv).decode()
@@ -90,6 +109,9 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder,us
 
             # Mengirim status login user apakah berhasil atau gagal login
             conn.sendall("EXISTS".encode()) if user_exists else conn.sendall("NOT_FOUND".encode())
+            data = openJson("status")
+            data["jumlahLogin"] += 1
+            save_status(data)
 
         # Update status isLogin user menjadi False ketika logout
         elif request_type == "logout":
@@ -97,6 +119,10 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder,us
             database[userAktif[addr[0]]]['isLogin'] = "false"
             save_database(database)
             print(f"{timeStamp()} User {userAktif[addr[0]]} berhasil logout!")
+
+            data = openJson("status")
+            data["jumlahLogin"] -= 1
+            save_status(data)
 
         # Mengirim semua nama file yang terdapat di server ke client jika request type == "list"
         elif request_type == "list":
@@ -161,6 +187,12 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder,us
             database = openJson("database")
             database[userAktif[addr[0]]]['jumlah_upload'] += 1
             save_database(database)
+
+            try:
+                subprocess.run(['bash',"sync-upload-S3.sh"], check=True)
+                #subprocess.run(["sync-upload-S3.bat"], check=True)
+            except subprocess.CalledProcessError as e:
+                print(f"Error running: {e}")
         else:
             print(f"{timeStamp()} Invalid request type from {addr}")
 

@@ -105,6 +105,21 @@ def login():
     username = input("Username: ")
     password = input("Password: ")
 
+    #Cek status server
+    connect()
+    request_type = "status"
+    client_socket.send(request_type.encode())
+    time.sleep(1)
+    response = client_socket.recv(maxrecv).decode()
+    if response == "FULL":
+        print("Server utama penuh, redirect ke server cadangan")
+        print("Mohon tunggu...")
+
+        response = client_socket.recv(maxrecv).decode()
+
+        global ip
+        ip = response
+
     connect()
 
     with client_socket:
