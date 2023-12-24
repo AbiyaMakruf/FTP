@@ -8,17 +8,18 @@ import subprocess
 from datetime import datetime
 
 # Fungsi untuk melakukan sync dengan AWS S3
-def sync():
+def sync(command,sleep):
     while True:
-        command = 'aws s3 sync s3://rpl-pbo-sister/sister/Database/ ./Database --delete'
-        
         try:
             print("Syncing with AWS S3...")
             subprocess.run(command,shell=True, check=True)
             print("Syncing with AWS S3 done!")
         except subprocess.CalledProcessError as e:
             print(f"Error running: {e}")
-        time.sleep(10)
+        if sleep:
+            time.sleep(15)
+        else:
+            break
 
 #Mengembalikan waktu saat ini
 def timeStamp():
@@ -26,20 +27,14 @@ def timeStamp():
 
 # Menyimpan data yang baru ke dalam database
 def save_database(database):
-    try:
-        command = 'aws s3 sync s3://rpl-pbo-sister/sister/Json ./Json'
-        subprocess.run(command,shell=True, check=True)
-    except subprocess.CalledProcessError as e:
-        print(f"Error running: {e}")
+    command = 'aws s3 sync s3://rpl-pbo-sister/sister/Json ./Json'
+    threading.Thread(target=sync, args=(command,False)).start()
 
     with open('./Json/database.json', 'w') as file:
         json.dump(database, file, indent=2)
 
-    try:
-        command = 'aws s3 sync ./Json s3://rpl-pbo-sister/sister/Json --exclude "server.json" --exclude "status.json"'
-        subprocess.run(command,shell=True, check=True)
-    except subprocess.CalledProcessError as e:
-        print(f"Error running: {e}")
+    command = 'aws s3 sync ./Json s3://rpl-pbo-sister/sister/Json --exclude "server.json" --exclude "status.json"'
+    threading.Thread(target=sync, args=(command,False)).start()
 
 def save_status(status):
     with open('./Json/status.json', 'w') as file:
@@ -62,11 +57,8 @@ def openJson(opsi):
 def update_statistics():
     # Automation statis most active user
     while True:
-        try:
-            command = 'aws s3 sync s3://rpl-pbo-sister/sister/Json ./Json'
-            subprocess.run(command,shell=True, check=True)
-        except subprocess.CalledProcessError as e:
-            print(f"Error running: {e}")
+        command = 'aws s3 sync s3://rpl-pbo-sister/sister/Json ./Json'
+        threading.Thread(target=sync, args=(command,False)).start()
         database = openJson("database")
 
         # Inisiasi user aktif, most download, most upload user
@@ -81,7 +73,7 @@ def update_statistics():
         print(f"Most active user for download\t: {most_downloads_user} (total download: {database[most_downloads_user]['jumlah_download']})")
         print(f"Most active user for upload\t: {most_uploads_user} (total upload: {database[most_uploads_user]['jumlah_upload']})")
         print("=============================================")
-        time.sleep(10)
+        time.sleep(15)
 
 def handle_client(conn, addr, database_folder, download_folder, upload_folder,userAktif):
     with conn:
@@ -203,12 +195,8 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder,us
             database[userAktif[addr[0]]]['jumlah_upload'] += 1
             save_database(database)
 
-            try:
-                command = 'aws s3 sync ./Upload s3://rpl-pbo-sister/sister/Database/'
-                subprocess.run(command, shell=True, check=True)
-                #subprocess.run(["sync-upload-S3.bat"], check=True)
-            except subprocess.CalledProcessError as e:
-                print(f"Error running: {e}")
+            command = 'aws s3 sync ./Upload s3://rpl-pbo-sister/sister/Database/'
+            threading.Thread(target=sync, args=(command,False)).start()
         else:
             print(f"{timeStamp()} Invalid request type from {addr}")
 
@@ -258,7 +246,8 @@ def start_server():
     update_thread.start()
 
     # Membuat thread untuk sync dengan AWS S3
-    syncS3_thread = threading.Thread(target=sync, args=())
+    command = 'aws s3 sync s3://rpl-pbo-sister/sister/Database/ ./Database --delete'
+    syncS3_thread = threading.Thread(target=sync, args=(command,True))
     syncS3_thread.start()
 
     global userAktif
