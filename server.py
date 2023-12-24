@@ -96,7 +96,7 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder,us
             if jumlahLogin >= 1 :
                 conn.sendall("FULL".encode())
                 time.sleep(1)
-                conn.sendall("47.128.250.64".encode())
+                conn.sendall("54.179.245.14".encode())
 
         # pengecekan request type
         elif request_type == "login":
