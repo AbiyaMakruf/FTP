@@ -7,8 +7,12 @@ import json
 import subprocess
 from datetime import datetime
 
-# Fungsi untuk melakukan sync dengan AWS S3
 def sync(command,sleep):
+    '''
+    Fungsi untuk melakukan sync dengan AWS S3
+    Sync dengan AWS S3 berdasarkan command yang diberikan
+    Jika sleep = True, maka akan melakukan sync setiap 15 detik
+    '''
     while True:
         try:
             print("Syncing with AWS S3...")
@@ -36,6 +40,7 @@ def save_database(database):
     command = 'aws s3 sync ./Json s3://rpl-pbo-sister/sister/Json --exclude "server.json" --exclude "status.json"'
     threading.Thread(target=sync, args=(command,False)).start()
 
+# Menyimpan data status ke dalam database
 def save_status(status):
     with open('./Json/status.json', 'w') as file:
         json.dump(status, file, indent=2)
@@ -55,13 +60,13 @@ def openJson(opsi):
             print(f"{timeStamp()} File database.json tidak ditemukan.")
 
 def update_statistics():
-    # Automation statis most active user
+    # Automation static most active user
     while True:
         command = 'aws s3 sync s3://rpl-pbo-sister/sister/Json ./Json'
         threading.Thread(target=sync, args=(command,False)).start()
         database = openJson("database")
 
-        # Inisiasi user aktif, most download, most upload user
+        # Inisiasi user aktif, most download, most upload
         user_aktif = [username for username, info in database.items() if info['isLogin'] == 'True']
         most_downloads_user = max(database, key=lambda x: database[x]['jumlah_download'])
         most_uploads_user = max(database, key=lambda x: database[x]['jumlah_upload'])
@@ -85,6 +90,7 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder,us
             data = openJson("status")
             jumlahLogin = data["jumlahLogin"]
 
+            # Jika jumlahLogin < 1, maka server tidak full
             if jumlahLogin >= 1 :
                 conn.sendall("FULL".encode())
                 time.sleep(1)
@@ -111,7 +117,7 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder,us
                 save_database(database)
                 user_exists = True
 
-                # 
+                # Menyimpan user yang sedang aktif  
                 userAktif[addr[0]] = username
 
             # Mengirim status login user apakah berhasil atau gagal login

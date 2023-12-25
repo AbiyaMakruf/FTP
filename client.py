@@ -1,13 +1,16 @@
+# Import modul yang dibutuhkan
 import socket
 import json
 import os
 import time
 import sys
 
+# Fungsi untuk menyimpan database ke file JSON
 def save_database(database):
     with open('./Json/server.json', 'w') as file:
         json.dump(database, file, indent=2)
 
+# Fungsi untuk melakukan koneksi ke server
 def connect():
     #Ubah host dan port sesuai dengan host dan port server
     host = ip
@@ -20,6 +23,7 @@ def connect():
     global maxrecv
     maxrecv = 8192
 
+# Fungsi untuk menampilkan progress bar
 def progress_bar(iteration, total, prefix='', suffix='', length=50, fill='█'):
     percent = ("{0:.1f}").format(100 * (iteration / float(total)))
     filled_length = int(length * iteration // total)
@@ -27,6 +31,7 @@ def progress_bar(iteration, total, prefix='', suffix='', length=50, fill='█'):
     sys.stdout.write('\r%s |%s| %s%% %s' % (prefix, bar, percent, suffix))
     sys.stdout.flush()
 
+# Fungsi untuk mengunggah file
 def unggah(file_path):
     connect()
     with client_socket:
@@ -52,6 +57,7 @@ def unggah(file_path):
 
         print("\nFile sent successfully")
 
+# Fungsi untuk mengunduh file
 def download():
     connect()
     with client_socket:
@@ -100,17 +106,20 @@ def download():
         else:
             print("Invalid request type. Please enter 'list' or 'download'.")
 
+# Fungsi untuk login
 def login():
     print("="*20,"Selamat Datang","="*20)
     username = input("Username: ")
     password = input("Password: ")
 
-    #Cek status server
+    # Cek status server
     connect()
     request_type = "status"
     client_socket.send(request_type.encode())
     time.sleep(1)
     response = client_socket.recv(maxrecv).decode()
+
+    # Jika server utama penuh, redirect ke server cadangan
     if response == "FULL":
         print("Server utama penuh, redirect ke server cadangan")
         print("Mohon tunggu...")
@@ -138,12 +147,14 @@ def login():
 
         return response == "EXISTS"
 
+# Fungsi untuk logout
 def logout():
         connect()
         request_type = "logout"
         client_socket.send(request_type.encode())
         time.sleep(1)
 
+# Fungsi untuk menampilkan menu
 def menu():
         print("\nLogin berhasil")
         print("="*20,"     Menu     ","="*20)
@@ -169,12 +180,14 @@ def menu():
             logout()
             print("\nProgram dihentikan")
 
+# Fungsi untuk membuat folder jika belum ada
 def create_folder_if_not_exists(folder_path):
     # Periksa apakah folder sudah ada
     if not os.path.exists(folder_path):
         # Jika belum ada, buat folder
         os.makedirs(folder_path)
 
+# Fungsi untuk memilih server
 def chooseServer():
     print("="*20,"     Server     ","="*20)
     print("1. Localhost")
@@ -184,6 +197,7 @@ def chooseServer():
     global ip
     ip = "localhost" if server == "1" else (updateServer() if server == "2" else exit())
 
+# Fungsi untuk mengupdate server
 def updateServer():
     print("="*20,"     Alamat Host     ","="*20)
     print("1. Default server")
@@ -208,14 +222,20 @@ def updateServer():
 
     return server['server']['host']
 
+# Fungsi utama
 def main():
+    # Membuat folder jika belum ada
     create_folder_if_not_exists("Database")
     create_folder_if_not_exists("Download")
     create_folder_if_not_exists("Upload")
 
+    # Memilih server
     chooseServer()
+
+    #Menampilkan menu jika login berhasil
     menu() if login() else print("Login gagal")
 
+# Jalankan fungsi utama
 if __name__ == "__main__":
     main()
 
