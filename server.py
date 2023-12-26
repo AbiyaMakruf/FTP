@@ -85,7 +85,7 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder,us
             data = openJson("status")
             jumlahLogin = data["jumlahLogin"]
 
-            if jumlahLogin >= 1 :
+            if jumlahLogin >= 2 :
                 conn.sendall("FULL".encode())
                 time.sleep(1)
                 conn.sendall("54.179.245.14".encode())
