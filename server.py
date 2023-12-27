@@ -7,7 +7,7 @@ import json
 import subprocess
 from datetime import datetime
 
-def sync(command,sleep):
+def sync(command,sleep,text):
     '''
     Fungsi untuk melakukan sync dengan AWS S3
     Sync dengan AWS S3 berdasarkan command yang diberikan
@@ -15,13 +15,13 @@ def sync(command,sleep):
     '''
     while True:
         try:
-            print("Syncing with AWS S3...")
+            print(f"Syncing with AWS S3...{text}")
             subprocess.run(command,shell=True, check=True)
             print("Syncing with AWS S3 done!")
         except subprocess.CalledProcessError as e:
             print(f"Error running: {e}")
         if sleep:
-            time.sleep(15)
+            time.sleep(5)
         else:
             break
 
@@ -32,13 +32,13 @@ def timeStamp():
 # Menyimpan data yang baru ke dalam database
 def save_database(database):
     command = 'aws s3 sync s3://rpl-pbo-sister/sister/Json ./Json'
-    threading.Thread(target=sync, args=(command,False)).start()
+    threading.Thread(target=sync, args=(command,False,"json")).start()
 
     with open('./Json/database.json', 'w') as file:
         json.dump(database, file, indent=2)
 
     command = 'aws s3 sync ./Json s3://rpl-pbo-sister/sister/Json --exclude "server.json" --exclude "status.json"'
-    threading.Thread(target=sync, args=(command,False)).start()
+    threading.Thread(target=sync, args=(command,False,"json")).start()
 
 # Menyimpan data status ke dalam database
 def save_status(status):
@@ -63,7 +63,7 @@ def update_statistics():
     # Automation static most active user
     while True:
         command = 'aws s3 sync s3://rpl-pbo-sister/sister/Json ./Json'
-        threading.Thread(target=sync, args=(command,False)).start()
+        threading.Thread(target=sync, args=(command,False,"json")).start()
         database = openJson("database")
 
         # Inisiasi user aktif, most download, most upload
@@ -78,7 +78,7 @@ def update_statistics():
         print(f"Most active user for download\t: {most_downloads_user} (total download: {database[most_downloads_user]['jumlah_download']})")
         print(f"Most active user for upload\t: {most_uploads_user} (total upload: {database[most_uploads_user]['jumlah_upload']})")
         print("=============================================")
-        time.sleep(15)
+        time.sleep(5)
 
 def handle_client(conn, addr, database_folder, download_folder, upload_folder,userAktif):
     with conn:
@@ -201,7 +201,7 @@ def handle_client(conn, addr, database_folder, download_folder, upload_folder,us
             save_database(database)
 
             command = 'aws s3 sync ./Upload s3://rpl-pbo-sister/sister/Database/'
-            threading.Thread(target=sync, args=(command,False)).start()
+            threading.Thread(target=sync, args=(command,False,"upload")).start()
         else:
             print(f"{timeStamp()} Invalid request type from {addr}")
 
@@ -252,7 +252,7 @@ def start_server():
 
     # Membuat thread untuk sync dengan AWS S3
     command = 'aws s3 sync s3://rpl-pbo-sister/sister/Database/ ./Database --delete'
-    syncS3_thread = threading.Thread(target=sync, args=(command,True))
+    syncS3_thread = threading.Thread(target=sync, args=(command,True,"Database"))
     syncS3_thread.start()
 
     global userAktif
